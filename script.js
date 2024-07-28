@@ -1,7 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
   const form = document.getElementById("profileForm");
   const resultDiv = document.getElementById("result");
-
   const bioTextarea = document.getElementById("bio");
   const emojiButton = document.getElementById("emojiButton");
   const emojiPicker = document.getElementById("emojiPicker");
@@ -20,6 +19,31 @@ document.addEventListener("DOMContentLoaded", function () {
   if (!form) {
     console.error("Form element not found");
     return;
+  }
+
+  function wrapText(context, text, x, y, maxWidth, lineHeight) {
+    const words = text.split(" ");
+    let line = "";
+    let lines = [];
+
+    for (let n = 0; n < words.length; n++) {
+      const testLine = line + words[n] + " ";
+      const metrics = context.measureText(testLine);
+      const testWidth = metrics.width;
+      if (testWidth > maxWidth && n > 0) {
+        lines.push(line);
+        line = words[n] + " ";
+      } else {
+        line = testLine;
+      }
+    }
+    lines.push(line);
+
+    lines.forEach((line, i) => {
+      context.fillText(line, x, y + i * lineHeight);
+    });
+
+    return lines.length * lineHeight;
   }
 
   form.addEventListener("submit", async function (e) {
@@ -62,6 +86,7 @@ document.addEventListener("DOMContentLoaded", function () {
       // Add bio
       ctx.font = '14px Arial, "Segoe UI Emoji", "Segoe UI Symbol"';
       ctx.fillStyle = "#262626";
+      const bioHeight = wrapText(ctx, bio, 20, 180, 380, 20);
       const bioLines = bio.split("\n");
       bioLines.forEach((line, index) => {
         ctx.fillText(line, 20, 180 + index * 20);
@@ -74,7 +99,7 @@ document.addEventListener("DOMContentLoaded", function () {
       // Add personal photos
       for (let i = 0; i < Math.min(photos.length, 3); i++) {
         const img = await createImageBitmap(photos[i]);
-        ctx.drawImage(img, 20 + i * 125, 320, 115, 115);
+        ctx.drawImage(img, 20 + i * 125, 400, 115, 115);
       }
 
       // Convert canvas to image
